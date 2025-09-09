@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявки</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles/main.css">
+    <link rel="stylesheet" href="/static/styles/analysis.css">
+</head>
+<body>
+    <header>
+        <a href="/genres"><img src="/static/img/Home.png" alt="home"></a>           
+    </header>
+    <main class="main-content">
+        <h1 class="page-title"> Составление заявки</h1>
+        <div class="search-section">
+            <div class="search-label">Текст для анализа</div>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Введите текст">
+                <button class="save-button">Сохранить</button>
+            </div>
+        </div>
+        <div class="analysis-list">
+            {{range .analysis.Genres}}
+            {{$genre := index $.genreMap .GenreID}}
+            <div class="genre-item">
+                <div class="genre-image">
+                    <img src="{{$genre.ImageURL}}" alt="{{$genre.GenreName}}">
+                </div>
+                <div class="genre-info">
+                    <h3 class="card-title">{{$genre.GenreName}}</h3>
+                    <p class="card-keywords">
+                        Маркерные слова: 
+                        {{$genre.Keywords}}
+                    </p>
+                    <p class="price">Стоимость: {{printf "%.2f" $genre.GenrePrice}} руб.</p>
+                    <a href="/genre/{{$genre.GenreID}}" class="details-link">Подробнее</a>
+                </div>
+                <div class="probability-section">
+                    <p class="price">Вероятность принадлежности текста к этому жанру:</p>
+                    <div class="probability-input">
+                        <input type="text" placeholder="Поле ответа">
+                    </div>
+                </div>
+                <div class="comment-section">
+                    <input type="text" class="comment-input" placeholder="Ваш комментарий" value="{{.Comment}}">
+                </div>
+                <div class="delete-icon">
+                    <img src="/static/img/Garbage.png" class="delete-icon" alt="Удалить">
+                </div>
+            </div>
+            {{end}}
+            <div class="action-buttons">
+                <button class="submit-button">Оформить заявку</button>
+                <button class="delete-button">Удалить заявку</button>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
