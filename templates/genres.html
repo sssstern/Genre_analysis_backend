@@ -6,33 +6,42 @@
     <title>Анализ текста - Определение жанра</title>
     <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/main.css">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
         <header>
             <a href="/genres" ><img src="/static/img/Home.png" alt="home"></a>            
         </header>
+        <footer>
+            <a href="/genreanalysisrequest/{{.currentAnalysisID}}" class="cart">
+                <img src="/static/img/RequestIcon.png" alt="Корзина" class="cart-image">
+                {{if gt .AnalysisCount 0}}
+                <div class="cart-count">{{.AnalysisCount}}</div>
+                {{end}}
+            </a>
+        </footer>
         <main>
             <div class="main-content">
                 <h1 class="page-title">Анализ текста</h1>                
                 <form action="/genres" method="GET" class="search-section">
                     <div class="search-label">Поиск по жанрам</div>
-                    <input type="text" name="query" class="search-input" placeholder="Введите текст для поиска" value="{{ .query}}">
+                    <input type="text" name="searchgenrequery" class="search-input" placeholder="Введите текст для поиска" value="{{ .searchgenrequery}}">
                     <button type="submit" style="display:none">Найти</button>
                 </form>                
                 <div class="cards-container">
                     {{range .genres}}
                     <div class="card">
                         <div class="card-image">
-                            <img src="{{.ImageURL}}" alt="{{.GenreName}}">
+                            <img src="{{.GenreImageURL}}" alt="{{.GenreName}}">
                         </div>
                         <div class="card-content">
                             <p class="card-title">{{.GenreName}}</p>
                             <p class="card-keywords">
                                 Маркерные слова: 
-                                {{.Keywords}}
+                                <span class="keywords-text">{{.GenreKeywords}}</span>
                             </p>
-                            <p class="price">Стоимость: {{printf "%.2f" .GenrePrice}} руб.</p>
                             <a href="/genre/{{.GenreID}}" class="card-details">Подробнее</a>
                             <!--button type="submit" class="add-to-analysis-btn">Добавить в заявку</button-->
                         </div>
@@ -42,14 +51,7 @@
             </div>
         </main>
 
-        <footer>
-            <a href="/analysis/{{.currentAnalysisID}}" class="cart">
-                <img src="/static/img/Bucket.png" alt="Корзина" class="cart-image">
-                {{if gt .AnalysisCount 0}}
-                <div class="cart-count">{{.AnalysisCount}}</div>
-                {{end}}
-            </a>
-        </footer>
+
     </div>
 </body>
 </html>

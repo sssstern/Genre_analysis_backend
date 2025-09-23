@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/main.css">
     <link rel="stylesheet" href="/static/styles/analysis.css">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <header>
@@ -17,7 +19,7 @@
         <div class="search-section">
             <div class="search-label">Текст для анализа</div>
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Введите текст">
+                <textarea class="search-input scrollable-textarea" placeholder="Заполнить текст" rows="5">{{ .analysis.TextToAnalyse}}</textarea>
                 <!--button class="save-button">Сохранить</button-->
             </div>
         </div>
@@ -26,25 +28,24 @@
             {{$genre := index $.genreMap .GenreID}}
             <div class="genre-item">
                 <div class="genre-image">
-                    <img src="{{$genre.ImageURL}}" alt="{{$genre.GenreName}}">
+                    <img src="{{$genre.GenreImageURL}}" alt="{{$genre.GenreName}}">
                 </div>
                 <div class="genre-info">
                     <h3 class="card-title">{{$genre.GenreName}}</h3>
                     <p class="card-keywords">
                         Маркерные слова: 
-                        {{$genre.Keywords}}
+                        {{$genre.GenreKeywords}}
                     </p>
-                    <p class="price">Стоимость: {{printf "%.2f" $genre.GenrePrice}} руб.</p>
                     <a href="/genre/{{$genre.GenreID}}" class="details-link">Подробнее</a>
                 </div>
                 <div class="probability-section">
                     <p class="price">Вероятность принадлежности текста к этому жанру:</p>
                     <div class="probability-input">
-                        <input type="text" placeholder="Поле ответа">
+                        <input type="text" placeholder="Поле ответа" value="{{.ProbabilityProcent}} %">
                     </div>
                 </div>
                 <div class="comment-section">
-                    <input type="text" class="comment-input" placeholder="Ваш комментарий" value="{{.Comment}}">
+                    <input type="text" class="comment-input" placeholder="Ваш комментарий" value="{{.CommentToRequest}}">
                 </div>
                 <!--div class="delete-icon">
                     <img src="/static/img/Garbage.png" class="delete-icon" alt="Удалить">

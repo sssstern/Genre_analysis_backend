@@ -7,16 +7,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles/main.css">
     <link rel="stylesheet" href="/static/styles/genre.css">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
         <header>
             <a href="/genres"><img src="/static/img/Home.png" alt="home"></a>           
         </header>
+        <footer>
+            <a href="/genreanalysisrequest/{{.currentAnalysisID}}" class="cart">
+                <img src="/static/img/RequestIcon.png" alt="Корзина" class="cart-image">
+                {{if gt .AnalysisCount 0}}
+                <div class="cart-count">{{.AnalysisCount}}</div>
+                {{end}}
+            </a>
+        </footer>
         <div class="genre-adress">
             <a href="/genres" class="adress-text"> Жанры/</a>
             <span class="adress-text"> {{.genre.GenreName}}</span>
         </div>
+
         
         <main class="genre-main">
             <div class="genre-content">
@@ -26,12 +37,9 @@
                     <div class="keywords-section">
                         <p class="card-keywords">
                             Маркерные слова: 
-                            {{.genre.Keywords}}
+                            {{.genre.GenreKeywords}}
                         </p>
                     </div>
-    
-                    <p class="price">Стоимость: {{printf "%.2f" $.genre.GenrePrice}} руб.</p>
-                
                     <form action="" class="add-to-analysis-form">
                         <!--button type="submit" class="add-to-analysis-btn">
                             Добавить в заявку
@@ -40,19 +48,12 @@
                 </div>
 
                 <div class="genre-image">
-                    <img src="{{.genre.ImageURL}}" alt="{{.genre.GenreName}}">
+                    <img src="{{.genre.GenreImageURL}}" alt="{{.genre.GenreName}}">
                 </div>
             </div>
         </main>
 
-        <footer>
-            <a href="/analysis/{{.currentAnalysisID}}" class="cart">
-                <img src="/static/img/Bucket.png" alt="Корзина" class="cart-image">
-                {{if gt .AnalysisCount 0}}
-                <div class="cart-count">{{.AnalysisCount}}</div>
-                {{end}}
-            </a>
-        </footer>
+
     </div>
 </body>
 </html>

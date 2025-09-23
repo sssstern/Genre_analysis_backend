@@ -26,7 +26,7 @@ func StartServer() {
 
 	r.GET("/genres", handler.GetGenres)
 	r.GET("/genre/:id", handler.GetGenre)
-	r.GET("/analysis/:id", handler.GetAnalysis)
+	r.GET("/genreanalysisrequest/:id", handler.GetAnalysis)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	log.Println("Server down")

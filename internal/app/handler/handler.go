@@ -24,15 +24,15 @@ func (h *Handler) GetGenres(ctx *gin.Context) {
 	var genres []repository.Genre
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поля поиска
-	if searchQuery == "" {            // если поле поиска пусто, то получаем все жанры
+	searchGenreQuery := ctx.Query("searchgenrequery") // получаем значение из поля поиска
+	if searchGenreQuery == "" {                       // если поле поиска пусто, то получаем все жанры
 		genres, err = h.Repository.GetGenres()
 		if err != nil {
 			logrus.Error("Ошибка получения жанров:", err)
 			return
 		}
 	} else {
-		genres, err = h.Repository.GetGenresByTitle(searchQuery) // ищем жанры по запросу
+		genres, err = h.Repository.GetGenresByTitle(searchGenreQuery) // ищем жанры по запросу
 		if err != nil {
 			logrus.Error("Ошибка поиска жанров:", err)
 			return
@@ -45,7 +45,7 @@ func (h *Handler) GetGenres(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "genres.html", gin.H{
 		"time":              time.Now().Format("15:04:05"),
 		"genres":            genres,
-		"query":             searchQuery,                            // передаем запрос обратно в форму
+		"searchgenrequery":  searchGenreQuery,                       // передаем запрос обратно в форму
 		"AnalysisCount":     analysisCount,                          // Количество услуг
 		"currentAnalysisID": currentAnalysis.GenreAnalysisRequestID, // ID заявки
 	})
