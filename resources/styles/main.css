@@ -1,0 +1,235 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Microsoft Sans Serif';
+    color: #000000;
+    background-color: #FFFFFF;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding:  5px 30px;
+    border-bottom: 1px solid #D6D5CE;
+    width: 100%;
+    height: 55px;
+}
+
+img {
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 10px 30px 0 75px;
+    gap: 30px;
+    width: 100%;
+    height: 670px;
+}
+
+.page-title {
+    font-family: 'Georgia', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    color: #000000;
+    width: 100%;
+}
+
+.search-section {
+    width: 100%;
+    position: relative;
+}
+
+.search-label{
+    box-sizing: border-box;
+    width: 201px;
+    height: 36px;
+    background: #FFFFFF;
+    border: 1px solid #908F8E;
+    border-bottom: none;
+    padding: 0 15px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    box-sizing: border-box;
+    width: 417px;
+    height: 40px;
+    background: #FFFFFF;
+    border: 1px solid #908F8E;
+    padding: 0 15px;
+    font-size: 16px;
+}
+
+.search-input::placeholder {
+    color: #908F8E;
+}
+
+/*.cards-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.card {
+    width: 270px;
+    height: 390px;
+    position: relative;
+    margin-bottom: 30px;
+}*/
+
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    grid-template-rows: repeat(2, auto); 
+    gap: 20px; 
+    width: 100%;
+}
+
+.card {
+    width: 270px;
+    height: 390px;
+    position: relative;
+}
+
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px;
+    width: 100%;
+    height: 195px;
+}
+
+.card-title {
+    font-size: 20px;
+    width: 100%;
+    font-family: sans-serif;
+    color: #000000;
+}
+
+.card-keywords {
+    font-family: sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: #7A7A78;
+    width: 100%;
+    max-height: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+}
+
+.price {
+    font-family: sans-serif;
+    font-size: 15px;
+    color: #000000;
+}
+
+.card-details {
+    font-size: 16px;
+    line-height: 18px;
+    text-decoration-line: underline;
+    color: #000000;
+    cursor: pointer;
+    text-decoration: underline
+}
+
+.card-details:hover {
+    color: #990000;
+    text-decoration: none;
+}
+
+.add-to-analysis-btn {
+    box-sizing: border-box;
+    width: 151px;
+    height: 31px;
+    background: #FFFFFF;
+    border: 1px solid #E2E1DC;
+    border-radius: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    color: #000000;
+}
+
+.add-to-analysis-btn:hover {
+    color: #990000;
+    border-color: #990000;
+}
+
+footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 15px 30px;
+    gap: 10px;
+    width: 100%;
+    height: 75px;
+    margin-top: auto;
+}
+
+.cart {
+    width: 55px;
+    height: 45px;
+    position: relative;
+    text-decoration: none;
+    display: block;
+}
+
+.cart-icon {
+    position: absolute;
+    width: 45px;
+    height: 45px;
+    background: #990000;
+    border-radius: 2px;
+}
+
+.cart-count {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 0;
+    background: #990000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFFFFF;
+    font-size: 14px;
+}
