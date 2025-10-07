@@ -24,10 +24,13 @@ type AnalysisGenreDTO struct {
 	ProbabilityPercent int    `json:"ProbabilityPercent"`
 }
 
-type UserDTO struct {
-	UserID      int    `json:"UserID"`
-	Login       string `json:"Login"`
-	IsModerator bool   `json:"IsModerator"`
+type UpdateAnalysisRequestDTO struct {
+	TextToAnalyse string `json:"TextToAnalyse"`
+}
+
+type UpdateGenreRequestDTO struct {
+	CommentToRequest   string `json:"comment_to_request"`
+	ProbabilityPercent int    `json:"probability_percent"`
 }
 
 type GenreDTO struct {
@@ -37,21 +40,17 @@ type GenreDTO struct {
 	GenreKeywords string `json:"GenreKeywords"`
 }
 
-type UpdateGenreRequestDTO struct {
+type UpdateGenreDTO struct {
 	GenreName     string `json:"GenreName"`
 	GenreKeywords string `json:"GenreKeywords"`
 }
 
-type UpdateAnalysisRequestDTO struct {
-	TextToAnalyse string `json:"TextToAnalyse"`
+type UserDTO struct {
+	UserID int    `json:"UserID"`
+	Login  string `json:"Login"`
 }
 
-type RegisterUserRequestDTO struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
-type UpdateUserRequestDTO struct {
+type ChangeUserDTO struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }

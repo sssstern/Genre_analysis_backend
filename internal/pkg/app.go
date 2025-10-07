@@ -27,14 +27,12 @@ func NewApp(c *config.Config, r *gin.Engine, h *handler.Handler) *Application {
 func (a *Application) RunApp() {
 	logrus.Info("Server starting up...")
 
-	// Регистрируем обработчики
 	a.Handler.RegisterHandler(a.Router)
 	a.Handler.RegisterStatic(a.Router)
 
 	serverAddress := fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
 
 	logrus.Infof("Server listening on %s", serverAddress)
-	logrus.Infof("Health check available at: http://%s/health", serverAddress)
 
 	if err := a.Router.Run(serverAddress); err != nil {
 		logrus.Fatal("Failed to start server: ", err)

@@ -1,15 +1,12 @@
-// handler/analysisrequest.go
 package handler
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
 
 	"lab3/internal/app/ds"
-	"lab3/internal/app/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,152 +27,6 @@ func (h *Handler) GetCurrentAnalysis(ctx *gin.Context) {
 	}
 
 	h.successResponse(ctx, response)
-}
-
-func (h *Handler) UpdateAnalysisRequest(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	var analysisUpdates ds.UpdateAnalysisRequestDTO
-	if err := ctx.BindJSON(&analysisUpdates); err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.Repository.UpdateAnalysisRequest(uint(id), analysisUpdates)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
-}
-
-func (h *Handler) GetAnalysisRequestByID(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	requestDTO, err := h.Repository.GetAnalysisRequestByID(id)
-	if err != nil {
-		if err.Error() == "record not found" {
-			h.errorHandler(ctx, http.StatusNotFound, fmt.Errorf("заявка с ID %d не найдена", id))
-			return
-		}
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	h.successResponse(ctx, requestDTO)
-}
-
-func (h *Handler) DeleteAnalysisRequest(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.Repository.DeleteAnalysisRequest(uint(id))
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
-}
-
-func (h *Handler) AddGenreToAnalysis(ctx *gin.Context) {
-	userID := h.getCurrentUserID()
-
-	genreID, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": "Неверный ID жанра",
-		})
-		return
-	}
-
-	err = h.Repository.AddGenreToAnalysis(userID, genreID, service.GetRandomPhrase(), rand.Intn(100))
-	if err != nil {
-		if err.Error() == "жанр уже добавлен в заявку" {
-			h.errorHandler(ctx, http.StatusConflict, err)
-		} else {
-			h.errorHandler(ctx, http.StatusInternalServerError, err)
-		}
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, gin.H{
-		"status": "success",
-	})
-}
-
-type UpdateCartGenreRequest struct {
-	CommentToRequest   string `json:"comment_to_request"`
-	ProbabilityPercent int    `json:"probability_percent"`
-}
-
-func (h *Handler) UpdateAnalysisGenre(ctx *gin.Context) {
-	userID := h.getCurrentUserID()
-
-	genreIDStr := ctx.Param("id")
-	genreID, err := strconv.Atoi(genreIDStr)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	var req UpdateCartGenreRequest
-	if err := ctx.BindJSON(&req); err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.Repository.UpdateAnalysisGenre(userID, genreID, req.CommentToRequest, req.ProbabilityPercent)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
-}
-
-func (h *Handler) RemoveGenreFromAnalysis(ctx *gin.Context) {
-	userID := h.getCurrentUserID()
-
-	genreIDStr := ctx.Param("id")
-	genreID, err := strconv.Atoi(genreIDStr)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.Repository.RemoveGenreFromAnalysis(userID, genreID)
-	if err != nil {
-		h.errorHandler(ctx, http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Genre removed from cart successfully",
-	})
 }
 
 func (h *Handler) GetAnalysisRequests(ctx *gin.Context) {
@@ -216,7 +67,7 @@ func (h *Handler) GetAnalysisRequests(ctx *gin.Context) {
 	h.successResponse(ctx, requests)
 }
 
-func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
+func (h *Handler) GetAnalysisRequestByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -224,7 +75,34 @@ func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.FormAnalysisRequestWithValidation(uint(id))
+	requestDTO, err := h.Repository.GetAnalysisRequestByID(id)
+	if err != nil {
+		if err.Error() == "record not found" {
+			h.errorHandler(ctx, http.StatusNotFound, fmt.Errorf("заявка с ID %d не найдена", id))
+			return
+		}
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.successResponse(ctx, requestDTO)
+}
+
+func (h *Handler) UpdateAnalysisRequest(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	var analysisUpdates ds.UpdateAnalysisRequestDTO
+	if err := ctx.BindJSON(&analysisUpdates); err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	err = h.Repository.UpdateAnalysisRequest(uint(id), analysisUpdates)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -235,8 +113,42 @@ func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
 	})
 }
 
-type ProcessAnalysisRequestRequest struct {
-	Action string `json:"action" binding:"required"` // "complete" или "reject"
+func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	err = h.Repository.FormAnalysisRequest(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
+}
+
+func (h *Handler) DeleteAnalysisRequest(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	err = h.Repository.DeleteAnalysisRequest(uint(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
 }
 
 func (h *Handler) ProcessAnalysisRequest(ctx *gin.Context) {
@@ -247,14 +159,14 @@ func (h *Handler) ProcessAnalysisRequest(ctx *gin.Context) {
 		return
 	}
 
-	var req ProcessAnalysisRequestRequest
-	if err := ctx.BindJSON(&req); err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+	action := ctx.Query("action")
+	if action == "" {
+		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("параметр action обязателен"))
 		return
 	}
 
-	moderatorID := 2 // хардкор модератора
-	analysisDTO, err := h.Repository.ProcessAnalysisRequest(uint(id), moderatorID, req.Action)
+	moderatorID := h.getCurrentModeratorID()
+	analysisDTO, err := h.Repository.ProcessAnalysisRequest(uint(id), moderatorID, action)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return

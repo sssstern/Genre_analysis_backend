@@ -1,4 +1,3 @@
-// repository/analysisrequest.go
 package repository
 
 import (
@@ -9,22 +8,26 @@ import (
 	"time"
 )
 
-func (r *Repository) UpdateAnalysisRequest(id uint, analysisUpdates ds.UpdateAnalysisRequestDTO) error {
+func (r *Repository) GetCurrentAnalysisInfo(userID int) (currentAnalysisID int, count int64, err error) {
 	var analysis ds.AnalysisRequest
-	err := r.db.Where("analysis_request_id = ? AND analysis_request_status = 'черновик'", id).First(&analysis).Error
+	err = r.db.Where("creator_id = ? AND analysis_request_status = 'черновик'", userID).First(&analysis).Error
 	if err != nil {
-		return err
+		if err.Error() == "record not found" {
+
+			return 0, 0, nil
+		}
+		return 0, 0, err
 	}
 
-	if analysisUpdates.TextToAnalyse != "" {
-		analysis.TextToAnalyse = analysisUpdates.TextToAnalyse
+	err = r.db.Model(&ds.AnalysisGenre{}).Where("analysis_request_id = ?", analysis.AnalysisRequestID).Count(&count).Error
+	if err != nil {
+		return 0, 0, err
 	}
 
-	return r.db.Save(&analysis).Error
+	return analysis.AnalysisRequestID, count, nil
 }
 
 func (r *Repository) GetCurrentAnalysis(userID int) (*ds.AnalysisRequest, error) {
-	// Этот метод используется внутренне, возвращает GORM-модель для логики. Если нужно, можно адаптировать, но для совместимости оставляем.
 	var analysis ds.AnalysisRequest
 	err := r.db.Where("creator_id = ? AND analysis_request_status = 'черновик'", userID).
 		Preload("Genres").
@@ -35,25 +38,15 @@ func (r *Repository) GetCurrentAnalysis(userID int) (*ds.AnalysisRequest, error)
 		if err.Error() == "record not found" {
 			newAnalysis := &ds.AnalysisRequest{
 				AnalysisRequestStatus: "черновик",
-				TextToAnalyse:         "Ранним утром солнце медленно поднималось над горизонтом, окрашивая небо в нежные розовые тона. Вдалеке шумел лес, наполняя воздух свежестью и ароматом хвои. Маленький ручеёк извивался между камнями, неся свои воды к большой реке. Птицы начинали свой дневной концерт, наполняя лес мелодичными трелями. Этот уголок природы был настоящим оазисом спокойствия и гармонии среди шумного города.",
+				TextToAnalyse:         "Старинный лесной лагерь казался тому возрасту каким-то райским местом. Но трудный подъем на вершину холма давался с огромным усилием. Привал был наградой. Мы с братцем сидели на крыльце походной палаты, поглядывая на котелок с едой. Он еле мог передвигать локоть от боли. Я готов был бороться с любым, кто посмеет нас рассудить или назвать убогими. Вдруг из-за забора выскочил рыжий кот, его лапа безнадежно торчала из ветки старого дуба. Он дико вопил. Мы в один миг вскочили. Братец, забыв про боль, махнул палкой: «Надо его спуститься!» Это был единственный способ. Я полез вверх. Высота была приличной. Девчонка из соседнего отряда, румяная девка, совала мне в карман халата пакет с молоком, шепча ласково: «Осторожнее!» Я кивнул, стараясь не смотреть вниз. Кот, почуяв свободу, выпустил когти. Я протянул руку, он царапнул мне ладонь до крови, но я сумел его схватить. Снизу послышался шепот и одобрительные выкрикивать. Спускаясь, я чувствовал, как по спине течет пот. На земле братец обнял меня, а рыжий зверь тут же прыгать к миске с молоком. Старушка-повариха усмехнулась: «Не зря старались». Мы перебили её, сказав одновременно: «Нельзя было допустить, чтобы животное страдало». Вечером в гостиной у костра та девчонка подошла, улыбнулась и поцеловала меня в щеку. Я вспыхнул, а братец засмеялся. В темноте фонарь светился мягким светом, а в воздухе витало что-то новое, большее, чем просто дружба. Мы помолчали, глядя на звезды. Казалось, сама ночь открылась нам навстречу.",
 				CreatorID:             userID,
 				CreatedAt:             time.Now(),
 			}
 
-			err = r.db.Create(newAnalysis).Error
-			if err != nil {
+			if err := r.db.Create(newAnalysis).Error; err != nil {
 				return nil, err
 			}
-
-			err = r.db.Where("analysis_request_id = ?", newAnalysis.AnalysisRequestID).
-				Preload("Genres").
-				Preload("Genres.Genre").
-				First(&analysis).Error
-			if err != nil {
-				return nil, err
-			}
-
-			return &analysis, nil
+			return newAnalysis, nil
 		}
 		return nil, err
 	}
@@ -61,107 +54,7 @@ func (r *Repository) GetCurrentAnalysis(userID int) (*ds.AnalysisRequest, error)
 	return &analysis, nil
 }
 
-func (r *Repository) GetCurrentAnalysisInfo(userID int) (int, int, error) {
-	analysis, err := r.GetCurrentAnalysis(userID)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	count := r.GetAnalysisCount(userID)
-	return int(analysis.AnalysisRequestID), count, nil
-}
-
-func (r *Repository) GetAnalysisCount(userID int) int {
-	analysis, err := r.GetCurrentAnalysis(userID)
-	if err != nil || analysis == nil || analysis.AnalysisRequestID == 0 {
-		return 0
-	}
-
-	var count int64
-	err = r.db.Model(&ds.AnalysisGenre{}).
-		Where("analysis_request_id = ?", analysis.AnalysisRequestID).
-		Count(&count).Error
-	if err != nil {
-		return 0
-	}
-
-	return int(count)
-}
-
-func (r *Repository) AddGenreToAnalysis(userID, genreID int, comment string, probability int) error {
-	analysis, err := r.GetCurrentAnalysis(userID)
-	if err != nil {
-		return err
-	}
-
-	var count int64
-	err = r.db.Model(&ds.AnalysisGenre{}).
-		Where("analysis_request_id = ? AND genre_id = ?", analysis.AnalysisRequestID, genreID).
-		Count(&count).Error
-	if err != nil {
-		return err
-	}
-
-	if count > 0 {
-		return fmt.Errorf("жанр уже добавлен в заявку")
-	}
-
-	item := ds.AnalysisGenre{
-		AnalysisRequestID:  analysis.AnalysisRequestID,
-		GenreID:            genreID,
-		CommentToRequest:   comment,
-		ProbabilityPercent: probability,
-	}
-	return r.db.Create(&item).Error
-}
-
-func (r *Repository) DeleteAnalysisRequest(analysisID uint) error {
-	return r.db.Exec("UPDATE analysis_requests SET analysis_request_status = 'удалён' WHERE analysis_request_id = ?", analysisID).Error
-}
-
-func (r *Repository) GetAnalysisRequestByID(analysisID int) (*ds.AnalysisRequestDTO, error) {
-	var analysis ds.AnalysisRequest
-	err := r.db.Where("analysis_request_id = ? AND analysis_request_status != 'удалён'", analysisID).
-		Preload("Genres").
-		Preload("Genres.Genre").
-		Preload("Creator").
-		Preload("Moderator").
-		First(&analysis).Error
-	if err != nil {
-		return nil, err
-	}
-
-	dto := &ds.AnalysisRequestDTO{
-		AnalysisRequestID:     analysis.AnalysisRequestID,
-		AnalysisRequestStatus: analysis.AnalysisRequestStatus,
-		CreatedAt:             analysis.CreatedAt,
-		CreatorLogin:          analysis.Creator.Login,
-		TextToAnalyse:         analysis.TextToAnalyse,
-	}
-	if analysis.FormedAt.Valid {
-		dto.FormedAt = &analysis.FormedAt.Time
-	}
-	if analysis.CompletedAt.Valid {
-		dto.CompletedAt = &analysis.CompletedAt.Time
-	}
-	if analysis.ModeratorID.Valid {
-		moderatorLogin := analysis.Moderator.Login
-		dto.ModeratorLogin = &moderatorLogin
-	}
-	for _, ag := range analysis.Genres {
-		dto.Genres = append(dto.Genres, ds.AnalysisGenreDTO{
-			GenreID:            ag.GenreID,
-			GenreName:          ag.Genre.GenreName,
-			GenreImageURL:      ag.Genre.GenreImageURL,
-			CommentToRequest:   ag.CommentToRequest,
-			ProbabilityPercent: ag.ProbabilityPercent,
-		})
-	}
-	return dto, nil
-}
-
 func (r *Repository) GetAnalysisRequests(status string, startDate, endDate time.Time) ([]ds.AnalysisRequestDTO, error) {
-	// Логика поиска остается, но возвращаем []ds.AnalysisRequestDTO
 	var analyses []ds.AnalysisRequest
 	query := r.db.Where("analysis_request_status != 'удалён' AND analysis_request_status != 'черновик'")
 	if status != "" {
@@ -211,7 +104,62 @@ func (r *Repository) GetAnalysisRequests(status string, startDate, endDate time.
 	return dtos, nil
 }
 
-func (r *Repository) FormAnalysisRequestWithValidation(id uint) error {
+func (r *Repository) GetAnalysisRequestByID(analysisID int) (*ds.AnalysisRequestDTO, error) {
+	var analysis ds.AnalysisRequest
+	err := r.db.Where("analysis_request_id = ? AND analysis_request_status != 'удалён'", analysisID).
+		Preload("Genres").
+		Preload("Genres.Genre").
+		Preload("Creator").
+		Preload("Moderator").
+		First(&analysis).Error
+	if err != nil {
+		return nil, err
+	}
+
+	dto := &ds.AnalysisRequestDTO{
+		AnalysisRequestID:     analysis.AnalysisRequestID,
+		AnalysisRequestStatus: analysis.AnalysisRequestStatus,
+		CreatedAt:             analysis.CreatedAt,
+		CreatorLogin:          analysis.Creator.Login,
+		TextToAnalyse:         analysis.TextToAnalyse,
+	}
+	if analysis.FormedAt.Valid {
+		dto.FormedAt = &analysis.FormedAt.Time
+	}
+	if analysis.CompletedAt.Valid {
+		dto.CompletedAt = &analysis.CompletedAt.Time
+	}
+	if analysis.ModeratorID.Valid {
+		moderatorLogin := analysis.Moderator.Login
+		dto.ModeratorLogin = &moderatorLogin
+	}
+	for _, ag := range analysis.Genres {
+		dto.Genres = append(dto.Genres, ds.AnalysisGenreDTO{
+			GenreID:            ag.GenreID,
+			GenreName:          ag.Genre.GenreName,
+			GenreImageURL:      ag.Genre.GenreImageURL,
+			CommentToRequest:   ag.CommentToRequest,
+			ProbabilityPercent: ag.ProbabilityPercent,
+		})
+	}
+	return dto, nil
+}
+
+func (r *Repository) UpdateAnalysisRequest(id uint, analysisUpdates ds.UpdateAnalysisRequestDTO) error {
+	var analysis ds.AnalysisRequest
+	err := r.db.Where("analysis_request_id = ? AND analysis_request_status = 'черновик'", id).First(&analysis).Error
+	if err != nil {
+		return err
+	}
+
+	if analysisUpdates.TextToAnalyse != "" {
+		analysis.TextToAnalyse = analysisUpdates.TextToAnalyse
+	}
+
+	return r.db.Save(&analysis).Error
+}
+
+func (r *Repository) FormAnalysisRequest(id uint) error {
 	var analysis ds.AnalysisRequest
 	err := r.db.Where("analysis_request_id = ? AND analysis_request_status = 'черновик'", id).First(&analysis).Error
 	if err != nil {
@@ -238,6 +186,10 @@ func (r *Repository) FormAnalysisRequestWithValidation(id uint) error {
 	return r.db.Save(&analysis).Error
 }
 
+func (r *Repository) DeleteAnalysisRequest(analysisID uint) error {
+	return r.db.Exec("UPDATE analysis_requests SET analysis_request_status = 'удалён' WHERE analysis_request_id = ?", analysisID).Error
+}
+
 func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action string) (*ds.AnalysisRequestDTO, error) {
 	var analysis ds.AnalysisRequest
 
@@ -259,7 +211,8 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 
 	analysis.ModeratorID = sql.NullInt64{Int64: int64(moderatorID), Valid: true}
 
-	if action == "complete" {
+	switch action {
+	case "complete":
 		textToAnalyse := analysis.TextToAnalyse
 
 		for i := range analysis.Genres {
@@ -281,9 +234,10 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 		analysis.AnalysisRequestStatus = "завершён"
 		analysis.CompletedAt = sql.NullTime{Time: time.Now(), Valid: true}
 
-	} else if action == "reject" {
-		analysis.AnalysisRequestStatus = "отклонен"
-	} else {
+	case "reject":
+		analysis.AnalysisRequestStatus = "отклонён"
+
+	default:
 		return nil, fmt.Errorf("недопустимое действие: %s. Допустимо 'complete' или 'reject'", action)
 	}
 
@@ -292,11 +246,26 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 		return nil, err
 	}
 
+	var moderatorLogin string
+	if analysis.ModeratorID.Valid {
+		// Прямой запрос логина пользователя по ID
+		err = r.db.Table("users").
+			Where("user_id = ?", analysis.ModeratorID.Int64).
+			Select("login").
+			Scan(&moderatorLogin).Error
+
+		if err != nil {
+			// Если модератор не найден, это не должно ломать логику
+			moderatorLogin = ""
+		}
+	}
+
+	// Формирование DTO
 	dto := ds.AnalysisRequestDTO{
 		AnalysisRequestID:     analysis.AnalysisRequestID,
 		AnalysisRequestStatus: analysis.AnalysisRequestStatus,
 		CreatedAt:             analysis.CreatedAt,
-		CreatorLogin:          analysis.Creator.Login,
+		CreatorLogin:          analysis.Creator.Login, // Creator актуален, т.к. не менялся
 		TextToAnalyse:         analysis.TextToAnalyse,
 	}
 
@@ -307,8 +276,9 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 		dto.CompletedAt = &analysis.CompletedAt.Time
 	}
 
-	if analysis.ModeratorID.Valid {
-		dto.ModeratorLogin = &analysis.Moderator.Login
+	// 💡 Присваиваем актуальный логин
+	if moderatorLogin != "" {
+		dto.ModeratorLogin = &moderatorLogin
 	}
 
 	for _, ag := range analysis.Genres {
@@ -322,33 +292,4 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 	}
 
 	return &dto, nil
-}
-
-// Другие методы (UpdateAnalysisGenre, RemoveGenreFromAnalysis и т.д.) остаются, так как не возвращают DTO напрямую, но могут быть адаптированы если нужно.
-func (r *Repository) UpdateAnalysisGenre(userID, genreID int, comment string, probability int) error {
-	// Логика обновления m-m, без DTO возврата (success only)
-	analysis, err := r.GetCurrentAnalysis(userID)
-	if err != nil {
-		return err
-	}
-
-	var ag ds.AnalysisGenre
-	err = r.db.Where("analysis_request_id = ? AND genre_id = ?", analysis.AnalysisRequestID, genreID).First(&ag).Error
-	if err != nil {
-		return err
-	}
-
-	ag.CommentToRequest = comment
-	ag.ProbabilityPercent = probability
-
-	return r.db.Save(&ag).Error
-}
-
-func (r *Repository) RemoveGenreFromAnalysis(userID, genreID int) error {
-	analysis, err := r.GetCurrentAnalysis(userID)
-	if err != nil {
-		return err
-	}
-
-	return r.db.Where("analysis_request_id = ? AND genre_id = ?", analysis.AnalysisRequestID, genreID).Delete(&ds.AnalysisGenre{}).Error
 }

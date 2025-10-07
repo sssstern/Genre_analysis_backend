@@ -23,12 +23,9 @@ func NewHandler(r *repository.Repository, minioClient *minio.Client, bucketName 
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
-	router.LoadHTMLGlob("templates/*")
-	router.Static("/styles", "./resources/styles")
 	router.Static("/img", "./resources/img")
 }
 
-// errorHandler для более удобного вывода ошибок
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
 	logrus.Error(err.Error())
 	ctx.JSON(errorStatusCode, gin.H{
@@ -47,6 +44,10 @@ func (h *Handler) successResponse(ctx *gin.Context, data interface{}) {
 // Временная функция для имитации авторизации
 func (h *Handler) getCurrentUserID() int {
 	return 1
+}
+
+func (h *Handler) getCurrentModeratorID() int {
+	return 2
 }
 
 func (h *Handler) RegisterHandler(router *gin.Engine) {

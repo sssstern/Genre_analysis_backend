@@ -79,7 +79,7 @@ func (r *Repository) CreateGenre(genreDTO ds.GenreDTO) (*ds.GenreDTO, error) {
 	}, nil
 }
 
-func (r *Repository) UpdateGenre(id int, genreUpdates ds.UpdateGenreRequestDTO) (*ds.GenreDTO, error) {
+func (r *Repository) UpdateGenre(id int, genreUpdates ds.UpdateGenreDTO) (*ds.GenreDTO, error) {
 	var genre ds.Genre
 	err := r.db.Where("genre_id = ? AND is_deleted = false", id).First(&genre).Error
 	if err != nil {
@@ -130,4 +130,32 @@ func (r *Repository) UpdateGenreImage(id int, imageURL string) (*ds.GenreDTO, er
 		GenreImageURL: genre.GenreImageURL,
 		GenreKeywords: genre.GenreKeywords,
 	}, nil
+}
+
+func (r *Repository) AddGenreToAnalysis(userID, genreID int) error {
+	analysis, err := r.GetCurrentAnalysis(userID)
+	if err != nil {
+		return err
+	}
+
+	var count int64
+	err = r.db.Model(&ds.AnalysisGenre{}).
+		Where("analysis_request_id = ? AND genre_id = ?", analysis.AnalysisRequestID, genreID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return fmt.Errorf("жанр уже добавлен в заявку")
+	}
+
+	item := ds.AnalysisGenre{
+		AnalysisRequestID:  analysis.AnalysisRequestID,
+		GenreID:            genreID,
+		CommentToRequest:   "",
+		ProbabilityPercent: 0,
+	}
+
+	return r.db.Create(&item).Error
 }

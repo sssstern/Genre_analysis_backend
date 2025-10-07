@@ -76,7 +76,7 @@ func (h *Handler) UpdateGenre(ctx *gin.Context) {
 		return
 	}
 
-	var genreUpdates ds.UpdateGenreRequestDTO
+	var genreUpdates ds.UpdateGenreDTO
 	if err := ctx.BindJSON(&genreUpdates); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -199,5 +199,28 @@ func (h *Handler) UploadGenreImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data":   updatedGenreDTO,
+	})
+}
+
+func (h *Handler) AddGenreToAnalysis(ctx *gin.Context) {
+	userID := h.getCurrentUserID()
+	genreID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID жанра"))
+		return
+	}
+
+	err = h.Repository.AddGenreToAnalysis(userID, genreID)
+	if err != nil {
+		if err.Error() == "жанр уже добавлен в заявку" {
+			h.errorHandler(ctx, http.StatusConflict, err)
+		} else {
+			h.errorHandler(ctx, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status": "success",
 	})
 }

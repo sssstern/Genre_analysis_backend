@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) RegisterUser(ctx *gin.Context) {
-	var input ds.RegisterUserRequestDTO
+	var input ds.ChangeUserDTO
 	if err := ctx.BindJSON(&input); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -34,10 +34,7 @@ func (h *Handler) RegisterUser(ctx *gin.Context) {
 }
 
 func (h *Handler) LoginUser(ctx *gin.Context) {
-	var input struct {
-		Login    string `json:"login"`
-		Password string `json:"password"`
-	}
+	var input ds.ChangeUserDTO
 	if err := ctx.BindJSON(&input); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -72,7 +69,7 @@ func (h *Handler) GetProfile(ctx *gin.Context) {
 func (h *Handler) UpdateProfile(ctx *gin.Context) {
 	userID := h.getCurrentUserID()
 
-	var userUpdates ds.UpdateUserRequestDTO
+	var userUpdates ds.ChangeUserDTO
 	if err := ctx.BindJSON(&userUpdates); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return

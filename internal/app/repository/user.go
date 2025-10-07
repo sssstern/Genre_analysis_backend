@@ -6,8 +6,7 @@ import (
 	"lab3/internal/app/ds"
 )
 
-func (r *Repository) RegisterUser(input ds.RegisterUserRequestDTO) error {
-	// Проверяем, существует ли пользователь
+func (r *Repository) RegisterUser(input ds.ChangeUserDTO) error {
 	var existingUser ds.User
 	err := r.db.Where("login = ?", input.Login).First(&existingUser).Error
 	if err == nil {
@@ -28,9 +27,8 @@ func (r *Repository) LoginUser(login, password string) (*ds.UserDTO, error) {
 		return nil, fmt.Errorf("неверный логин или пароль")
 	}
 	return &ds.UserDTO{
-		UserID:      user.UserID,
-		Login:       user.Login,
-		IsModerator: user.IsModerator,
+		UserID: user.UserID,
+		Login:  user.Login,
 	}, nil
 }
 
@@ -41,13 +39,12 @@ func (r *Repository) GetUserByID(userID int) (*ds.UserDTO, error) {
 		return nil, err
 	}
 	return &ds.UserDTO{
-		UserID:      user.UserID,
-		Login:       user.Login,
-		IsModerator: user.IsModerator,
+		UserID: user.UserID,
+		Login:  user.Login,
 	}, nil
 }
 
-func (r *Repository) UpdateUser(userID int, userUpdates ds.UpdateUserRequestDTO) (*ds.UserDTO, error) {
+func (r *Repository) UpdateUser(userID int, userUpdates ds.ChangeUserDTO) (*ds.UserDTO, error) {
 	var user ds.User
 	err := r.db.Where("user_id = ?", userID).First(&user).Error
 	if err != nil {
@@ -55,7 +52,6 @@ func (r *Repository) UpdateUser(userID int, userUpdates ds.UpdateUserRequestDTO)
 	}
 
 	if userUpdates.Login != "" {
-		// Проверяем, не занят ли новый логин другим пользователем
 		var count int64
 		r.db.Model(&ds.User{}).Where("login = ? AND user_id != ?", userUpdates.Login, userID).Count(&count)
 		if count > 0 {
@@ -74,9 +70,8 @@ func (r *Repository) UpdateUser(userID int, userUpdates ds.UpdateUserRequestDTO)
 	}
 
 	return &ds.UserDTO{
-		UserID:      user.UserID,
-		Login:       user.Login,
-		IsModerator: user.IsModerator,
+		UserID: user.UserID,
+		Login:  user.Login,
 	}, nil
 }
 
