@@ -40,14 +40,13 @@ func (h *Handler) GetAnalysis(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		ctx.Redirect(http.StatusFound, "/genres")
 		return
 	}
 
 	analysis, err := h.Repository.GetAnalysisByID(uint(id))
 	if err != nil {
-		// Если заявка не найдена или удалена - возвращаем 404
-		h.errorHandler(ctx, http.StatusNotFound, err)
+		ctx.Redirect(http.StatusFound, "/genres")
 		return
 	}
 
