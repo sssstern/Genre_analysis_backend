@@ -23,7 +23,6 @@ func (h *Handler) GetCurrentAnalysis(ctx *gin.Context) {
 	response := gin.H{
 		"analysis_request_id":     currentAnalysisID,
 		"genres_in_request_count": count,
-		"analysis_request_img":    "/img/RequestIcon.png",
 	}
 
 	h.successResponse(ctx, response)
@@ -102,15 +101,19 @@ func (h *Handler) UpdateAnalysisRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.UpdateAnalysisRequest(uint(id), analysisUpdates)
+	_, err = h.Repository.UpdateAnalysisRequest(uint(id), analysisUpdates)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
+	updatedAnalysisDTO, err := h.Repository.GetAnalysisRequestByID(int(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("обновление успешно, но ошибка при получении данных для ответа: %w", err))
+		return
+	}
+
+	h.successResponse(ctx, updatedAnalysisDTO)
 }
 
 func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
@@ -121,15 +124,19 @@ func (h *Handler) FormAnalysisRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.FormAnalysisRequest(uint(id))
+	_, err = h.Repository.FormAnalysisRequest(uint(id))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
+	updatedAnalysisDTO, err := h.Repository.GetAnalysisRequestByID(int(id))
+	if err != nil {
+		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("обновление успешно, но ошибка при получении данных для ответа: %w", err))
+		return
+	}
+
+	h.successResponse(ctx, updatedAnalysisDTO)
 }
 
 func (h *Handler) DeleteAnalysisRequest(ctx *gin.Context) {
@@ -146,9 +153,7 @@ func (h *Handler) DeleteAnalysisRequest(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
+	ctx.Status(http.StatusNoContent)
 }
 
 func (h *Handler) ProcessAnalysisRequest(ctx *gin.Context) {

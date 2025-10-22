@@ -145,45 +145,57 @@ func (r *Repository) GetAnalysisRequestByID(analysisID int) (*ds.AnalysisRequest
 	return dto, nil
 }
 
-func (r *Repository) UpdateAnalysisRequest(id uint, analysisUpdates ds.UpdateAnalysisRequestDTO) error {
+func (r *Repository) UpdateAnalysisRequest(id uint, analysisUpdates ds.UpdateAnalysisRequestDTO) (*ds.AnalysisRequest, error) {
 	var analysis ds.AnalysisRequest
+
 	err := r.db.Where("analysis_request_id = ? AND analysis_request_status = 'черновик'", id).First(&analysis).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if analysisUpdates.TextToAnalyse != "" {
 		analysis.TextToAnalyse = analysisUpdates.TextToAnalyse
 	}
 
-	return r.db.Save(&analysis).Error
+	err = r.db.Save(&analysis).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &analysis, nil
 }
 
-func (r *Repository) FormAnalysisRequest(id uint) error {
+func (r *Repository) FormAnalysisRequest(id uint) (*ds.AnalysisRequest, error) {
 	var analysis ds.AnalysisRequest
+
 	err := r.db.Where("analysis_request_id = ? AND analysis_request_status = 'черновик'", id).First(&analysis).Error
 	if err != nil {
-		return err
+		return nil, err // Возвращаем nil и ошибку
 	}
 
 	if analysis.TextToAnalyse == "" {
-		return fmt.Errorf("текст для анализа не может быть пустым")
+		return nil, fmt.Errorf("текст для анализа не может быть пустым")
 	}
 
 	var count int64
 	err = r.db.Model(&ds.AnalysisGenre{}).Where("analysis_request_id = ?", id).Count(&count).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if count == 0 {
-		return fmt.Errorf("нельзя сформировать заявку без жанров")
+		return nil, fmt.Errorf("нельзя сформировать заявку без жанров")
 	}
 
 	analysis.AnalysisRequestStatus = "сформирован"
 	analysis.FormedAt = sql.NullTime{Time: time.Now(), Valid: true}
 
-	return r.db.Save(&analysis).Error
+	err = r.db.Save(&analysis).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &analysis, nil
 }
 
 func (r *Repository) DeleteAnalysisRequest(analysisID uint) error {
@@ -248,24 +260,21 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 
 	var moderatorLogin string
 	if analysis.ModeratorID.Valid {
-		// Прямой запрос логина пользователя по ID
 		err = r.db.Table("users").
 			Where("user_id = ?", analysis.ModeratorID.Int64).
 			Select("login").
 			Scan(&moderatorLogin).Error
 
 		if err != nil {
-			// Если модератор не найден, это не должно ломать логику
 			moderatorLogin = ""
 		}
 	}
 
-	// Формирование DTO
 	dto := ds.AnalysisRequestDTO{
 		AnalysisRequestID:     analysis.AnalysisRequestID,
 		AnalysisRequestStatus: analysis.AnalysisRequestStatus,
 		CreatedAt:             analysis.CreatedAt,
-		CreatorLogin:          analysis.Creator.Login, // Creator актуален, т.к. не менялся
+		CreatorLogin:          analysis.Creator.Login,
 		TextToAnalyse:         analysis.TextToAnalyse,
 	}
 
@@ -276,7 +285,6 @@ func (r *Repository) ProcessAnalysisRequest(id uint, moderatorID int, action str
 		dto.CompletedAt = &analysis.CompletedAt.Time
 	}
 
-	// 💡 Присваиваем актуальный логин
 	if moderatorLogin != "" {
 		dto.ModeratorLogin = &moderatorLogin
 	}

@@ -29,15 +29,13 @@ func (h *Handler) RegisterStatic(router *gin.Engine) {
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
 	logrus.Error(err.Error())
 	ctx.JSON(errorStatusCode, gin.H{
-		"status":  "error",
 		"message": err.Error(),
 	})
 }
 
 func (h *Handler) successResponse(ctx *gin.Context, data interface{}) {
 	ctx.JSON(200, gin.H{
-		"status": "success",
-		"data":   data,
+		"data": data,
 	})
 }
 
@@ -63,13 +61,13 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		api.POST("/genres/add-to-analysis/:id", h.AddGenreToAnalysis)
 
 		// Заявки
-		api.GET("/analysis-request/icon", h.GetCurrentAnalysis)
-		api.GET("/analysis-request", h.GetAnalysisRequests)
-		api.GET("/analysis-requests/:id", h.GetAnalysisRequestByID)
-		api.PUT("/analysis-requests/:id", h.UpdateAnalysisRequest)
-		api.PUT("/analysis-requests/:id/form", h.FormAnalysisRequest)
-		api.DELETE("/analysis-requests/:id", h.DeleteAnalysisRequest)
-		api.PUT("/analysis-requests/:id/process", h.ProcessAnalysisRequest)
+		api.GET("/text-analysis-request/icon", h.GetCurrentAnalysis)
+		api.GET("/text-analysis-request", h.GetAnalysisRequests)
+		api.GET("/text-analysis-requests/:id", h.GetAnalysisRequestByID)
+		api.PUT("/text-analysis-requests/:id", h.UpdateAnalysisRequest)
+		api.PUT("/text-analysis-requests/:id/form", h.FormAnalysisRequest)
+		api.DELETE("/text-analysis-requests/:id", h.DeleteAnalysisRequest)
+		api.PUT("/text-analysis-requests/:id/process", h.ProcessAnalysisRequest)
 
 		// m-m
 		api.DELETE("/analysis-genre/:id", h.RemoveGenreFromAnalysis)

@@ -63,8 +63,7 @@ func (h *Handler) CreateGenre(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
-		"status": "success",
-		"data":   createdGenreDTO,
+		"data": createdGenreDTO,
 	})
 }
 
@@ -118,10 +117,7 @@ func (h *Handler) DeleteGenre(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Genre deleted successfully",
-	})
+	ctx.Status(http.StatusNoContent)
 }
 
 func (h *Handler) UploadGenreImage(ctx *gin.Context) {
@@ -197,8 +193,7 @@ func (h *Handler) UploadGenreImage(ctx *gin.Context) {
 	logrus.Infof("Successfully updated genre %d with new image: %s", id, imageURL)
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   updatedGenreDTO,
+		"data": updatedGenreDTO,
 	})
 }
 
@@ -220,7 +215,5 @@ func (h *Handler) AddGenreToAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"status": "success",
-	})
+	ctx.Status(http.StatusNoContent)
 }

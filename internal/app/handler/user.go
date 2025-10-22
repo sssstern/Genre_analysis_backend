@@ -28,9 +28,7 @@ func (h *Handler) RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"status": "success",
-	})
+	ctx.Status(http.StatusNoContent)
 }
 
 func (h *Handler) LoginUser(ctx *gin.Context) {
@@ -93,8 +91,5 @@ func (h *Handler) LogoutUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Успешный выход из системы",
-	})
+	ctx.Status(http.StatusNoContent)
 }
