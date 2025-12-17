@@ -8,3 +8,4 @@
 * Ссылка на GitHub Pages:
 [https://sssstern.github.io/Genre_analysis_frontend](https://sssstern.github.io/Genre_analysis_frontend)
 * Ветка Асинхронного сервиса
+(https://github.com/sssstern/Async-genre-probability-calculation-service)
