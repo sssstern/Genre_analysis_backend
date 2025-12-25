@@ -1,0 +1,1251 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Используется для запросов из браузера.",
+        "title": "Анализ Принадлежности Текста к Жанру",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8082",
+    "basePath": "/api/v1",
+    "paths": {
+        "/analysis-genres/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Обновляет комментарий и процент вероятности для жанра в текущем черновике заявки.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен м-м"
+                ],
+                "summary": "Обновить жанр в заявке",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Комментарий и процент вероятности",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateGenreRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное обновление"
+                    },
+                    "400": {
+                        "description": "Неверный формат ID или данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаляет жанр из текущего черновика заявки.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен м-м"
+                ],
+                "summary": "Удалить жанр из заявки",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра для удаления",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное удаление"
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres": {
+            "get": {
+                "description": "Возвращает список всех существующих жанров. Доступен публично.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Получить список жанров",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию жанра (частичное совпадение)",
+                        "name": "searchbygenrename",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список жанров",
+                        "schema": {
+                            "$ref": "#/definitions/ds.GenreDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Создает новый жанр. Требуются права **Модератора**.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Создать новый жанр",
+                "parameters": [
+                    {
+                        "description": "Название и ключевые слова жанра",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateGenreDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Успешное создание жанра",
+                        "schema": {
+                            "$ref": "#/definitions/ds.GenreDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (не модератор)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres/add-to-analysis/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Добавляет жанр в текущую черновую заявку пользователя. Требуется **Авторизация**.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Добавить жанр в черновик заявки",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра для добавления",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное добавление"
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера (например, жанр уже добавлен)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres/{id}": {
+            "get": {
+                "description": "Возвращает информацию о конкретном жанре. Доступен публично.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Получить жанр по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о жанре",
+                        "schema": {
+                            "$ref": "#/definitions/ds.GenreDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Жанр не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Обновляет название и/или ключевые слова жанра по ID. Требуются права **Модератора**.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Обновить жанр",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новые название и ключевые слова жанра",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateGenreDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное обновление",
+                        "schema": {
+                            "$ref": "#/definitions/ds.GenreDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат ID или данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (не модератор)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Жанр не найден",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Устанавливает флаг is_deleted = true для жанра. Требуются права **Модератора**.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Удалить жанр",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное удаление"
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (не модератор)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres/{id}/image": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Загружает и обновляет изображение для жанра по ID. Требуются права **Модератора**.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен жанров"
+                ],
+                "summary": "Загрузить изображение жанра",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID жанра",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Файл изображения",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная загрузка, возвращает обновленный жанр",
+                        "schema": {
+                            "$ref": "#/definitions/ds.GenreDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка загрузки/формата файла",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (не модератор)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка Minio/сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-request": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Для модератора - все заявки. Для создателя - только его заявки.",
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Получить список заявок",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтр по статусу ('черновик', 'сформирован', 'завершён', 'отклонён')",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список заявок",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/ds.AnalysisRequestDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-request/icon": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Возвращает ID текущей черновой заявки и количество жанров в ней.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Получить информацию о черновике",
+                "responses": {
+                    "200": {
+                        "description": "Информация о черновике",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "analysis_request_id": {
+                                    "type": "integer"
+                                },
+                                "genres_in_request_count": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-request/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Получить одну заявку по id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Заявка",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ds.AnalysisRequestDTO"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-requests/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Обновляет поле 'TextToAnalyse' черновой заявки.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Обновить черновик",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки (черновика)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый текст для анализа",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.UpdateAnalysisRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное обновление",
+                        "schema": {
+                            "$ref": "#/definitions/ds.AnalysisRequestDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат ID или данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера/Не является черновиком",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Удаляет заявку (только черновик).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Удалить черновик заявки",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки (черновика)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное удаление"
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера/Не является черновиком",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-requests/{id}/form": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "Переводит статус черновика на 'на модерации'.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Отправить заявку на модерацию",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки (черновика)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная отправка",
+                        "schema": {
+                            "$ref": "#/definitions/ds.AnalysisRequestDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат ID",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера/Не является черновиком",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/text-analysis-requests/{id}/process": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "tags": [
+                    "Домен заявки на анализ текста"
+                ],
+                "summary": "Завершить или отклонить заявку (Только для Модератора)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Действие ('complete' или 'reject')",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Обновленная заявка",
+                        "schema": {
+                            "$ref": "#/definitions/ds.AnalysisRequestDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (не модератор)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Заявка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен пользователя"
+                ],
+                "summary": "Аутентификация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для входа",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.ChangeUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный вход",
+                        "schema": {
+                            "$ref": "#/definitions/ds.AuthResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен пользователя"
+                ],
+                "summary": "Выход из системы",
+                "responses": {
+                    "204": {
+                        "description": "Успешный выход"
+                    },
+                    "401": {
+                        "description": "Неавторизован (отсутствует токен)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка Redis/сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен пользователя"
+                ],
+                "summary": "Получить профиль",
+                "responses": {
+                    "200": {
+                        "description": "Данные пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/ds.UserDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден (редкий случай)",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен пользователя"
+                ],
+                "summary": "Обновить профиль",
+                "parameters": [
+                    {
+                        "description": "Новые данные (логин/пароль)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.ChangeUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное обновление",
+                        "schema": {
+                            "$ref": "#/definitions/ds.UserDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Домен пользователя"
+                ],
+                "summary": "Регистрация нового пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для регистрации (логин и пароль)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.ChangeUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешная регистрация"
+                    },
+                    "400": {
+                        "description": "Неверный формат данных",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера или пользователь с таким логином уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ds.AnalysisGenreDTO": {
+            "type": "object",
+            "properties": {
+                "CommentToRequest": {
+                    "type": "string"
+                },
+                "GenreID": {
+                    "type": "integer"
+                },
+                "GenreImageURL": {
+                    "type": "string"
+                },
+                "GenreName": {
+                    "type": "string"
+                },
+                "ProbabilityPercent": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.AnalysisRequestDTO": {
+            "type": "object",
+            "properties": {
+                "AnalysisRequestID": {
+                    "type": "integer"
+                },
+                "AnalysisRequestStatus": {
+                    "type": "string"
+                },
+                "CompletedAt": {
+                    "type": "string"
+                },
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "CreatorLogin": {
+                    "type": "string"
+                },
+                "FormedAt": {
+                    "type": "string"
+                },
+                "Genres": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ds.AnalysisGenreDTO"
+                    }
+                },
+                "ModeratorLogin": {
+                    "type": "string"
+                },
+                "TextToAnalyse": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.AuthResponseDTO": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "description": "Unix timestamp истечения",
+                    "type": "integer"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.ChangeUserDTO": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.GenreDTO": {
+            "type": "object",
+            "properties": {
+                "GenreID": {
+                    "type": "integer"
+                },
+                "GenreImageURL": {
+                    "type": "string"
+                },
+                "GenreKeywords": {
+                    "type": "string"
+                },
+                "GenreName": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.UpdateAnalysisRequestDTO": {
+            "type": "object",
+            "properties": {
+                "TextToAnalyse": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.UpdateGenreDTO": {
+            "type": "object",
+            "properties": {
+                "GenreKeywords": {
+                    "type": "string"
+                },
+                "GenreName": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.UpdateGenreRequestDTO": {
+            "type": "object",
+            "properties": {
+                "comment_to_request": {
+                    "type": "string"
+                },
+                "probability_percent": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.UserDTO": {
+            "type": "object",
+            "properties": {
+                "Login": {
+                    "type": "string"
+                },
+                "Role": {
+                    "description": "Теперь строковое поле",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ds.UserRole"
+                        }
+                    ]
+                },
+                "UserID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.UserRole": {
+            "type": "string",
+            "enum": [
+                "guest",
+                "creator",
+                "moderator"
+            ],
+            "x-enum-comments": {
+                "RoleCreator": "Обычный пользователь"
+            },
+            "x-enum-descriptions": [
+                "",
+                "Обычный пользователь",
+                ""
+            ],
+            "x-enum-varnames": [
+                "RoleGuest",
+                "RoleCreator",
+                "RoleModerator"
+            ]
+        },
+        "handler.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Используется для запросов через Insomnia/Postman: \"Bearer \u003cJWT\u003e\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

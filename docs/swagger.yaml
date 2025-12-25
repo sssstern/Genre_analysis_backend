@@ -1,0 +1,791 @@
+basePath: /api/v1
+definitions:
+  ds.AnalysisGenreDTO:
+    properties:
+      CommentToRequest:
+        type: string
+      GenreID:
+        type: integer
+      GenreImageURL:
+        type: string
+      GenreName:
+        type: string
+      ProbabilityPercent:
+        type: integer
+    type: object
+  ds.AnalysisRequestDTO:
+    properties:
+      AnalysisRequestID:
+        type: integer
+      AnalysisRequestStatus:
+        type: string
+      CompletedAt:
+        type: string
+      CreatedAt:
+        type: string
+      CreatorLogin:
+        type: string
+      FormedAt:
+        type: string
+      Genres:
+        items:
+          $ref: '#/definitions/ds.AnalysisGenreDTO'
+        type: array
+      ModeratorLogin:
+        type: string
+      TextToAnalyse:
+        type: string
+    type: object
+  ds.AuthResponseDTO:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        description: Unix timestamp истечения
+        type: integer
+      token_type:
+        type: string
+    type: object
+  ds.ChangeUserDTO:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  ds.GenreDTO:
+    properties:
+      GenreID:
+        type: integer
+      GenreImageURL:
+        type: string
+      GenreKeywords:
+        type: string
+      GenreName:
+        type: string
+    type: object
+  ds.UpdateAnalysisRequestDTO:
+    properties:
+      TextToAnalyse:
+        type: string
+    type: object
+  ds.UpdateGenreDTO:
+    properties:
+      GenreKeywords:
+        type: string
+      GenreName:
+        type: string
+    type: object
+  ds.UpdateGenreRequestDTO:
+    properties:
+      comment_to_request:
+        type: string
+      probability_percent:
+        type: integer
+    type: object
+  ds.UserDTO:
+    properties:
+      Login:
+        type: string
+      Role:
+        allOf:
+        - $ref: '#/definitions/ds.UserRole'
+        description: Теперь строковое поле
+      UserID:
+        type: integer
+    type: object
+  ds.UserRole:
+    enum:
+    - guest
+    - creator
+    - moderator
+    type: string
+    x-enum-comments:
+      RoleCreator: Обычный пользователь
+    x-enum-descriptions:
+    - ""
+    - Обычный пользователь
+    - ""
+    x-enum-varnames:
+    - RoleGuest
+    - RoleCreator
+    - RoleModerator
+  handler.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8082
+info:
+  contact: {}
+  description: Используется для запросов из браузера.
+  title: Анализ Принадлежности Текста к Жанру
+  version: "1.0"
+paths:
+  /analysis-genres/{id}:
+    delete:
+      description: Удаляет жанр из текущего черновика заявки.
+      parameters:
+      - description: ID жанра для удаления
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешное удаление
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Удалить жанр из заявки
+      tags:
+      - Домен м-м
+    put:
+      consumes:
+      - application/json
+      description: Обновляет комментарий и процент вероятности для жанра в текущем
+        черновике заявки.
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Комментарий и процент вероятности
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdateGenreRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешное обновление
+        "400":
+          description: Неверный формат ID или данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Обновить жанр в заявке
+      tags:
+      - Домен м-м
+  /genres:
+    get:
+      description: Возвращает список всех существующих жанров. Доступен публично.
+      parameters:
+      - description: Поиск по названию жанра (частичное совпадение)
+        in: query
+        name: searchbygenrename
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список жанров
+          schema:
+            $ref: '#/definitions/ds.GenreDTO'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Получить список жанров
+      tags:
+      - Домен жанров
+    post:
+      consumes:
+      - application/json
+      description: Создает новый жанр. Требуются права **Модератора**.
+      parameters:
+      - description: Название и ключевые слова жанра
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdateGenreDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успешное создание жанра
+          schema:
+            $ref: '#/definitions/ds.GenreDTO'
+        "400":
+          description: Неверный формат данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Доступ запрещен (не модератор)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Создать новый жанр
+      tags:
+      - Домен жанров
+  /genres/{id}:
+    delete:
+      description: Устанавливает флаг is_deleted = true для жанра. Требуются права
+        **Модератора**.
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешное удаление
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Доступ запрещен (не модератор)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Удалить жанр
+      tags:
+      - Домен жанров
+    get:
+      description: Возвращает информацию о конкретном жанре. Доступен публично.
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о жанре
+          schema:
+            $ref: '#/definitions/ds.GenreDTO'
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Жанр не найден
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Получить жанр по ID
+      tags:
+      - Домен жанров
+    put:
+      consumes:
+      - application/json
+      description: Обновляет название и/или ключевые слова жанра по ID. Требуются
+        права **Модератора**.
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новые название и ключевые слова жанра
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdateGenreDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное обновление
+          schema:
+            $ref: '#/definitions/ds.GenreDTO'
+        "400":
+          description: Неверный формат ID или данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Доступ запрещен (не модератор)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Жанр не найден
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Обновить жанр
+      tags:
+      - Домен жанров
+  /genres/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает и обновляет изображение для жанра по ID. Требуются права
+        **Модератора**.
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Файл изображения
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная загрузка, возвращает обновленный жанр
+          schema:
+            $ref: '#/definitions/ds.GenreDTO'
+        "400":
+          description: Ошибка загрузки/формата файла
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Доступ запрещен (не модератор)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка Minio/сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Загрузить изображение жанра
+      tags:
+      - Домен жанров
+  /genres/add-to-analysis/{id}:
+    post:
+      description: Добавляет жанр в текущую черновую заявку пользователя. Требуется
+        **Авторизация**.
+      parameters:
+      - description: ID жанра для добавления
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешное добавление
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера (например, жанр уже добавлен)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Добавить жанр в черновик заявки
+      tags:
+      - Домен жанров
+  /text-analysis-request:
+    get:
+      description: Для модератора - все заявки. Для создателя - только его заявки.
+      parameters:
+      - description: Фильтр по статусу ('черновик', 'сформирован', 'завершён', 'отклонён')
+        in: query
+        name: status
+        type: string
+      responses:
+        "200":
+          description: Список заявок
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/ds.AnalysisRequestDTO'
+              type: array
+            type: array
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Получить список заявок
+      tags:
+      - Домен заявки на анализ текста
+  /text-analysis-request/{id}:
+    get:
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Заявка
+          schema:
+            items:
+              $ref: '#/definitions/ds.AnalysisRequestDTO'
+            type: array
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Получить одну заявку по id
+      tags:
+      - Домен заявки на анализ текста
+  /text-analysis-request/icon:
+    get:
+      description: Возвращает ID текущей черновой заявки и количество жанров в ней.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о черновике
+          schema:
+            properties:
+              analysis_request_id:
+                type: integer
+              genres_in_request_count:
+                type: integer
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Получить информацию о черновике
+      tags:
+      - Домен заявки на анализ текста
+  /text-analysis-requests/{id}:
+    delete:
+      description: Удаляет заявку (только черновик).
+      parameters:
+      - description: ID заявки (черновика)
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешное удаление
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера/Не является черновиком
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Удалить черновик заявки
+      tags:
+      - Домен заявки на анализ текста
+    put:
+      consumes:
+      - application/json
+      description: Обновляет поле 'TextToAnalyse' черновой заявки.
+      parameters:
+      - description: ID заявки (черновика)
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новый текст для анализа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdateAnalysisRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное обновление
+          schema:
+            $ref: '#/definitions/ds.AnalysisRequestDTO'
+        "400":
+          description: Неверный формат ID или данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера/Не является черновиком
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Обновить черновик
+      tags:
+      - Домен заявки на анализ текста
+  /text-analysis-requests/{id}/form:
+    put:
+      description: Переводит статус черновика на 'на модерации'.
+      parameters:
+      - description: ID заявки (черновика)
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная отправка
+          schema:
+            $ref: '#/definitions/ds.AnalysisRequestDTO'
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера/Не является черновиком
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Отправить заявку на модерацию
+      tags:
+      - Домен заявки на анализ текста
+  /text-analysis-requests/{id}/process:
+    put:
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Действие ('complete' или 'reject')
+        in: query
+        name: action
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Обновленная заявка
+          schema:
+            $ref: '#/definitions/ds.AnalysisRequestDTO'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Доступ запрещен (не модератор)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Заявка не найдена
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Завершить или отклонить заявку (Только для Модератора)
+      tags:
+      - Домен заявки на анализ текста
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/ds.ChangeUserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный вход
+          schema:
+            $ref: '#/definitions/ds.AuthResponseDTO'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Аутентификация пользователя
+      tags:
+      - Домен пользователя
+  /user/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешный выход
+        "401":
+          description: Неавторизован (отсутствует токен)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка Redis/сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Выход из системы
+      tags:
+      - Домен пользователя
+  /user/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/ds.UserDTO'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Пользователь не найден (редкий случай)
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Получить профиль
+      tags:
+      - Домен пользователя
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Новые данные (логин/пароль)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.ChangeUserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное обновление
+          schema:
+            $ref: '#/definitions/ds.UserDTO'
+        "400":
+          description: Неверный формат данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - SessionCookie: []
+      summary: Обновить профиль
+      tags:
+      - Домен пользователя
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные для регистрации (логин и пароль)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.ChangeUserDTO'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Успешная регистрация
+        "400":
+          description: Неверный формат данных
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера или пользователь с таким логином уже существует
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - Домен пользователя
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    description: 'Используется для запросов через Insomnia/Postman: "Bearer <JWT>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
